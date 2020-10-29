@@ -21,11 +21,7 @@ app.use(function(err, req, res, next) {
 app.use(users);
 
 
+app.listen(port, () => {
+  console.log(`API server listening on port ${port}`);
+})
 
-module.exports = app;
-
-if (require.main === module) {
-  app.listen(port, () => {
-    console.log(`API server listening on port ${port}`);
-  })
-}

@@ -23,7 +23,7 @@ async function login(req, res){
             if (row){
                 bcrypt.compare(data.password, row.password).then(async (result) => {
                     if (result) {
-                        const session = await createSession(row.id, req, {id: row.id});
+                        const session = await createJWTToken(row.id, req, {id: row.id});
                         if (session.err) res.status(500).end(); //DB error
                         else res.status(202).cookie('jwt', session.jwt, {httpOnly: true}).json({refresh: session.refresh});
                     } else
@@ -50,7 +50,7 @@ async function register(req, res){
         data.hash = await bcrypt.hash(data.password, saltRound);
         pg.register(data).then(async (row) => {
             if (row) {
-                const session = await createSession(row.id, req, {id: row.id});
+                const session = await createJWTToken(row.id, req, {id: row.id});
                 if (session.err) res.status(500).end(); //DB error
                 else res.status(201).cookie('jwt', session.jwt, {httpOnly: true}).json({refresh: session.refresh});
             } else res.status(500).end(); //DB error
@@ -75,7 +75,7 @@ function refresh(req, res){
         else{
             pg.getToken(data.refresh).then(async (row) => {
                 if (row){
-                    const session = await createSession(row['user_id'], req, jwtDecoded);
+                    const session = await createJWTToken(row['user_id'], req, jwtDecoded);
                     if (session.err) res.status(500).end();
                     else res.status(200).cookie('jwt', session.jwt, {httpOnly: true}).json({refresh: session.refresh});
                 } else{
@@ -89,7 +89,7 @@ function refresh(req, res){
     } else res.status(400).end();
 }
 
-async function createSession(id, req, payload) {
+async function createJWTToken(id, req, payload) {
     let data = {};
     let token = jsonwebtoken.sign({id: payload.id, exp: Math.floor(Date.now() / 1000) + jwtTime}, secretKey);
     data.os = req.useragent.os;
