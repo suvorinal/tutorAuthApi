@@ -7,11 +7,12 @@ const crypto = require('crypto');
 const saltRound = 1;
 const GLOBAL_SALT = '8a21cedf37a3c7afed52a24555e3411b808bba7da08382fa9018a2035499b1c7';
 const secretKey = 'secretKey';
-const jwtTime = 60 * 60;
+const jwtTime = 30;
 
 module.exports.login = login;
 module.exports.register = register;
 module.exports.refresh = refresh;
+module.exports.logout = logout;
 
 async function login(req, res){
     const data = {
@@ -87,6 +88,23 @@ function refresh(req, res){
             })
         }
     } else res.status(400).end();
+}
+
+async function logout(req, res){
+    let data = {
+        refresh: req.body.refresh
+    }
+    data.jwt = req.cookies.jwt;
+    res.clearCookie('jwt');
+    if (validateRefresh(data)){
+        let jwtDecoded = jsonwebtoken.decode(data.jwt, secretKey);
+        if (!jwtDecoded)
+            res.status(400).json({err: 'invalid jwt'});
+        else{
+            await pg.getToken(data.refresh);
+            res.status(200).end();
+        }
+    } else res.status(400).json({err: 'invalid data'});
 }
 
 async function createJWTToken(id, req, payload) {
