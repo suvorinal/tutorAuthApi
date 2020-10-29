@@ -6,8 +6,8 @@ const cors = require('cors');
 const bodyParser = require('body-parser');
 const cookieParser = require('cookie-parser');
 const expressip = require('express-ip');
-
 const users = require('./routes/users');
+
 app.use(cors());
 app.use(cookieParser());
 app.use(bodyParser.json({limit: '1kb'}));
@@ -23,5 +23,5 @@ app.use(users);
 
 app.listen(port, () => {
   console.log(`API server listening on port ${port}`);
-})
+});
 
